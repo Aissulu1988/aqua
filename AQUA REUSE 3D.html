@@ -1,0 +1,217 @@
+<!DOCTYPE html><html lang="kk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>AQUA REUSE 3D</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#e9eef2;font-family:system-ui,"Segoe UI",Arial,sans-serif;color:#fff}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.g{position:fixed;background:rgba(18,28,40,.84);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45}
+#hd{top:calc(26px + env(safe-area-inset-top,0px));left:8px;max-width:min(370px,58vw)}
+#hd h1{margin:0;font-size:16px;color:#ffd54a}#hd p{margin:2px 0 6px;font-size:11px;opacity:.8}
+#pbw{height:4px;background:#345;border-radius:2px;margin-top:6px}#pb{height:4px;width:0;background:#ffd54a;border-radius:2px}
+#bar{bottom:calc(26px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);max-width:96vw;display:flex;flex-direction:column;gap:6px;align-items:center;padding:8px}
+#bar div{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+button{background:#2a4a6b;color:#fff;border:0;border-radius:7px;padding:7px 10px;font-size:12px;cursor:pointer}
+button:hover{background:#3b6a99}button.on{background:#c98a00}#st{display:none}#st button{background:#3b5b3b}
+#pn{display:none;top:calc(26px + env(safe-area-inset-top,0px));right:8px;width:min(330px,90vw);max-height:62vh;overflow:auto}
+#pn h3{margin:0 0 6px;color:#ffd54a;font-size:15px}#pn p{margin:4px 0}#pn b{color:#8fd0ff}
+#orn,#orn2{position:fixed;left:0;right:0;height:18px;z-index:5;pointer-events:none;background:#0f4c81 url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='18'><path d='M14 9c0-6 8-6 8 0s-6 5-6 1M14 9c0-6-8-6-8 0s6 5 6 1' fill='none' stroke='%23e8b923' stroke-width='1.6'/></svg>") repeat-x}
+#orn{top:0}#orn2{bottom:0}
+#x{position:absolute;right:10px;top:6px;cursor:pointer;font-size:20px}
+.row{padding:5px;border-bottom:1px solid #345;cursor:pointer}.row:hover{background:#2a4a6b}.row small{display:block;opacity:.75}
+.lb{position:fixed;left:0;top:0;pointer-events:none;background:rgba(18,28,40,.7);color:#fff;font-size:11px;padding:2px 6px;border-radius:5px;white-space:nowrap}
+#ts{position:fixed;top:40%;left:50%;transform:translateX(-50%);background:rgba(18,28,40,.9);padding:10px 16px;border-radius:10px;display:none;font-size:14px}
+</style></head><body>
+<canvas id="c"></canvas><div id="orn"></div><div id="orn2"></div>
+<div id="hd" class="g"><h1>AQUA REUSE 3D</h1><p>Ащыбұлақ суын күн энергиясы арқылы тұщыландырудың цифрлық моделі</p><div id="ex"></div><div id="pbw"><div id="pb"></div></div></div>
+<div id="pn" class="g"><span id="x">×</span><div id="cd"></div><div id="ls"></div><div id="sci"></div></div>
+<div id="bar" class="g"><div id="st"></div><div id="bt"></div></div>
+<div id="ts"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+const $=id=>document.getElementById(id),V=(x,y,z)=>new THREE.Vector3(x,y,z);
+const err=m=>{document.body.insertAdjacentHTML('beforeend','<div class="g" style="top:40%;left:50%;transform:translateX(-50%)">'+m+'</div>')};
+if(typeof THREE==='undefined'||!THREE.OrbitControls){err('Үш өлшемді кітапхана жүктелмеді. Интернет байланысын тексеріп, бетті жаңартыңыз.');return}
+const cv=$('c');let R;try{R=new THREE.WebGLRenderer({canvas:cv,antialias:true})}catch(e){err('Браузер WebGL-ді қолдамайды. Басқа браузермен ашып көріңіз.');return}
+R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;R.outputEncoding=THREE.sRGBEncoding;
+const S=new THREE.Scene();const skc=document.createElement('canvas');skc.width=2;skc.height=256;{const x=skc.getContext('2d'),g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,'#2f8fd0');g.addColorStop(.7,'#9fd3ea');g.addColorStop(1,'#d9ecd8');x.fillStyle=g;x.fillRect(0,0,2,256)}S.background=new THREE.CanvasTexture(skc);S.fog=new THREE.Fog(0xd5e8da,80,170);
+const cam=new THREE.PerspectiveCamera(45,1,.1,300),ctl=new THREE.OrbitControls(cam,cv);
+ctl.enableDamping=true;ctl.maxPolarAngle=1.52;ctl.minDistance=3;ctl.maxDistance=70;ctl.autoRotateSpeed=1.5;
+const HOME={p:V(17,12,25),t:V(0,2.5,0)};cam.position.copy(HOME.p);ctl.target.copy(HOME.t);let tw=null;ctl.addEventListener('start',()=>tw=null);
+S.add(new THREE.HemisphereLight(0xffffff,0x9aa4ad,.75));
+const sunP=V(16,26,20),Ld=new THREE.DirectionalLight(0xfff0d0,1.1);Ld.position.copy(sunP);Ld.castShadow=true;Ld.shadow.mapSize.set(2048,2048);
+const sc=Ld.shadow.camera;sc.left=sc.bottom=-26;sc.right=sc.top=26;sc.far=90;S.add(Ld);
+// materials
+const M=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.5,metalness:.2},o||{}));
+const steel=M(0x9aa3ab,{metalness:.8,roughness:.35}),dark=M(0x2b2f33,{roughness:.6}),wall=M(0xd8d2c4,{roughness:.8,metalness:0}),
+glass=new THREE.MeshPhysicalMaterial({color:0xbfe6ff,transparent:true,opacity:.3,roughness:.05,metalness:0,side:2,depthWrite:false}),
+tgl=glass.clone(),tray=M(0x15181b,{roughness:.5}),wat=M(0x1f7fd0,{transparent:true,opacity:.82,roughness:.1}),
+wat2=M(0x3a9be0,{transparent:true,opacity:.85,roughness:.1}),cell=M(0x14264d,{metalness:.6,roughness:.25});
+tgl.opacity=.22;
+const C={},pick=[];
+const G=id=>{const g=new THREE.Group();S.add(g);C[id]=g;return g};
+const mesh=(g,geo,m,x,y,z)=>{const o=new THREE.Mesh(geo,m);o.position.set(x||0,y||0,z||0);o.castShadow=!m.transparent;o.receiveShadow=true;g.add(o);return o};
+const bx=(g,w,h,d,m,x,y,z)=>mesh(g,new THREE.BoxGeometry(w,h,d),m,x,y,z);
+const cy=(g,r,h,m,x,y,z,rz,rx)=>{const o=mesh(g,new THREE.CylinderGeometry(r,r,h,24),m,x,y,z);o.rotation.z=rz||0;o.rotation.x=rx||0;return o};
+const tube=(g,pts,r,m)=>{const c=new THREE.CatmullRomCurve3(pts);mesh(g,new THREE.TubeGeometry(c,60,r,10),m);return c};
+const ring=(g,r,x,y,z,ry)=>{const o=mesh(g,new THREE.TorusGeometry(r,.05,8,20),steel,x,y,z);o.rotation.y=ry||0;return o};
+const ang=Math.atan2(2,6);
+const gr=new THREE.Mesh(new THREE.PlaneGeometry(200,200),M(0xc9d49a,{roughness:1,metalness:0}));gr.rotation.x=-Math.PI/2;gr.receiveShadow=true;S.add(gr);
+function carpet(){const c=document.createElement('canvas');c.width=1024;c.height=768;const x=c.getContext('2d');x.fillStyle='#0f4c81';x.fillRect(0,0,1024,768);x.fillStyle='#f1e2bd';x.fillRect(90,90,844,588);x.strokeStyle='#c8102e';x.lineWidth=8;x.strokeRect(75,75,874,618);
+const horn=(px,py,rot,col)=>{x.save();x.translate(px,py);x.rotate(rot);x.strokeStyle=col;x.lineWidth=4;x.beginPath();x.moveTo(0,0);x.bezierCurveTo(0,-16,20,-16,20,0);x.bezierCurveTo(20,11,7,11,7,3);x.moveTo(0,0);x.bezierCurveTo(0,16,-20,16,-20,0);x.bezierCurveTo(-20,-11,-7,-11,-7,-3);x.stroke();x.restore()};
+for(let i=0;i<22;i++){horn(52+i*42,41,0,'#e8b923');horn(52+i*42,727,0,'#e8b923')}for(let j=0;j<14;j++){horn(41,100+j*42,Math.PI/2,'#e8b923');horn(983,100+j*42,Math.PI/2,'#e8b923')}
+for(let i=0;i<10;i++)for(let j=0;j<7;j++)horn(150+i*80+(j%2)*40,140+j*80,0,'#c9a96a');const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+const cp=new THREE.Mesh(new THREE.PlaneGeometry(44,33),M(0xffffff,{map:carpet(),roughness:1,metalness:0}));cp.rotation.x=-Math.PI/2;cp.position.y=.02;cp.receiveShadow=true;S.add(cp);
+function yurt(x,z,s,ry){const g=new THREE.Group(),f=M(0xf4efe2,{roughness:1,metalness:0}),b=M(0x1f6fb5,{roughness:.8}),gd=M(0xe8b923,{roughness:.5,metalness:.4}),rd=M(0x7a1f1f,{roughness:.8});const A=(geo,m,px,py,pz)=>{const o=new THREE.Mesh(geo,m);o.position.set(px,py,pz);o.castShadow=true;g.add(o);return o};
+A(new THREE.CylinderGeometry(4,4,3,32),f,0,1.5,0);A(new THREE.SphereGeometry(4.1,32,12,0,Math.PI*2,0,Math.PI/2),f,0,3,0).scale.y=.75;A(new THREE.CylinderGeometry(4.03,4.03,.4,32),b,0,2.5,0);A(new THREE.CylinderGeometry(4.05,4.05,.1,32),gd,0,2.2,0);A(new THREE.CylinderGeometry(4.05,4.05,.1,32),gd,0,2.8,0);
+A(new THREE.TorusGeometry(.7,.08,8,24),gd,0,6.05,0).rotation.x=Math.PI/2;A(new THREE.BoxGeometry(1.5,2.2,.15),rd,0,1.1,4.02);A(new THREE.BoxGeometry(1.7,.12,.2),gd,0,2.25,4.02);g.position.set(x,0,z);g.scale.setScalar(s);g.rotation.y=ry;S.add(g)}
+yurt(-30,-24,1.3,.4);yurt(-20,-32,.9,.9);yurt(30,-27,1.1,-.5);
+// tanks
+function tank(id,x,z,r,h){const g=G(id);cy(g,r,h,tgl,x,h/2,z);cy(g,r+.05,.1,steel,x,.05,z);const t=mesh(g,new THREE.TorusGeometry(r,.06,8,32),steel,x,h,z);t.rotation.x=Math.PI/2;
+const wg=new THREE.CylinderGeometry(r-.05,r-.05,h-.2,32);wg.translate(0,(h-.2)/2,0);const w=mesh(g,wg,wat2,x,.1,z);return w}
+const sw=tank('tank',-11,0,1.5,4);const ddw=tank('dtank',10,3.5,1.3,3);
+cy(C.tank,.2,.4,steel,-9.55,.8,0,Math.PI/2);cy(C.tank,.25,.3,steel,-11,4.1,0);
+// chamber
+const ch=G('chamber');bx(ch,12.2,.4,6.4,wall,0,.7,0);bx(ch,12.2,2.7,.2,wall,0,2.25,3.1);bx(ch,12.2,4.7,.2,wall,0,3.25,-3.1);
+const sh=new THREE.Shape();sh.moveTo(-3.1,.9);sh.lineTo(3.1,.9);sh.lineTo(3.1,3.57);sh.lineTo(-3.1,5.63);sh.closePath();
+const sg=new THREE.ExtrudeGeometry(sh,{depth:.2,bevelEnabled:false});sg.rotateY(-Math.PI/2);[-5.9,6.1].forEach(x=>mesh(ch,sg,wall,x,0,0));
+bx(ch,11.6,.1,5.6,tray,0,.95,0);
+const wg=new THREE.BoxGeometry(11.5,1,5.5);wg.translate(0,.5,0);const dw=mesh(ch,wg,wat,0,1,0);
+ring(ch,.3,-6.12,1.2,0,Math.PI/2);[[-6,-3],[6,-3],[-6,3],[6,3]].forEach(p=>mesh(ch,new THREE.SphereGeometry(.09,8,8),steel,p[0],.92,p[1]));
+// lid
+const lg=G('lid');bx(lg,12.4,.12,6.32,glass,0,5.6-1,0).rotation.x=ang;
+bx(lg,12.4,.18,.25,steel,0,3.55,3.0);bx(lg,12.4,.18,.25,steel,0,5.65,-3.0);
+[-6.2,6.2].forEach(x=>bx(lg,.2,.18,6.4,steel,x,4.6,0).rotation.x=ang);
+const cn=G('cond');bx(cn,11.8,.02,6,new THREE.MeshBasicMaterial({color:0x66ccff,transparent:true,opacity:.07,depthWrite:false}),0,4.5,0).rotation.x=ang;
+// gutter & drain
+const gu=G('gutter');bx(gu,12.4,.05,.7,steel,0,2.99,3.3);bx(gu,12.4,.3,.05,steel,0,3.15,2.975);bx(gu,12.4,.3,.05,steel,0,3.15,3.625);bx(gu,.05,.3,.7,steel,-6.2,3.15,3.3);
+const cD=tube(gu,[V(6.2,3.15,3.3),V(8,3.15,3.3),V(9.7,3.15,3.4),V(10,3,3.5),V(10,2.5,3.5)],.15,steel);
+// feed pipes, valve, pump
+const pp=G('pipes'),cF=tube(pp,[V(-9.5,.8,0),V(-7.2,.8,0),V(-6.7,.9,0),V(-6.3,1.2,0),V(-5,1.2,0)],.15,steel);
+mesh(pp,new THREE.SphereGeometry(.3,16,12),steel,-7.6,.8,0);cy(pp,.04,.9,M(0xcc2222),-7.6,1.25,0,Math.PI/2).rotation.y=0;ring(pp,.2,-9.4,.8,0,Math.PI/2);ring(pp,.2,-6.25,1.2,0,Math.PI/2);
+const pu=G('pump');cy(pu,.5,.9,M(0x3a6ea5),-8.2,.8,0,Math.PI/2);mesh(pu,new THREE.SphereGeometry(.42,16,12),steel,-8.7,.8,0);bx(pu,.5,.3,.5,dark,-8.2,1.35,0);
+// panel
+const pa=G('panel'),pg=new THREE.Group();pg.position.set(2,3.2,-9);pg.rotation.x=.5;pa.add(pg);
+bx(pg,8.2,.25,5.2,steel,0,0,0);for(let i=0;i<8;i++)for(let j=0;j<5;j++)bx(pg,.92,.04,.92,cell,-3.5+i,.15,-2+j);
+// sensors & controller
+const se=G('sens');bx(se,2.4,2.2,.9,M(0xdadfe3,{metalness:.1}),-4.5,1.1,6.5);
+const dc=document.createElement('canvas');dc.width=256;dc.height=128;const dx=dc.getContext('2d'),dt_=new THREE.CanvasTexture(dc);
+mesh(se,new THREE.PlaneGeometry(2,1),new THREE.MeshBasicMaterial({map:dt_}),-4.5,1.4,6.96);
+[[-3,1.3],[3,3]].forEach(p=>{cy(se,.08,1.2,steel,p[0],p[1],2.6,0,Math.PI/2);bx(se,.4,.4,.3,dark,p[0],p[1],3.45)});
+// frame
+const fr=G('frame');[[-5.6,-2.8],[5.6,-2.8],[-5.6,2.8],[5.6,2.8]].forEach(p=>cy(fr,.15,.5,steel,p[0],.25,p[1]));
+[-2.8,2.8].forEach(z=>bx(fr,11.2,.1,.15,steel,0,.2,z));[-5.6,5.6].forEach(x=>bx(fr,.15,.1,5.6,steel,x,.2,0));
+[-1,5].forEach(x=>{cy(fr,.12,4.2,steel,x,2.1,-11);cy(fr,.12,1.9,steel,x,.95,-6.9)});bx(fr,6.4,.12,.12,steel,2,3,-11);
+// cables (not pickable)
+const cb=new THREE.Group();S.add(cb);
+const c1=tube(cb,[V(2,2,-6.8),V(2,.3,-5.5),V(-8.9,.3,-5.5),V(-8.9,.3,6.6),V(-5.7,.5,6.6)],.05,dark);
+const c2=tube(cb,[V(-5.7,.6,6.7),V(-8.2,.3,6),V(-8.2,.4,1.2),V(-8.2,.65,.4)],.05,dark);
+tube(cb,[V(-3,1.3,3.6),V(-3,.5,5),V(-4,.6,6.4)],.04,dark);tube(cb,[V(3,3,3.6),V(3,.4,4.8),V(-3,.4,6),V(-3.6,.6,6.5)],.04,dark);
+for(const id in C)C[id].traverse(o=>{if(o.isMesh){o.userData.id=id;pick.push(o)}});
+// sun
+const sunM=new THREE.Mesh(new THREE.SphereGeometry(1.5,24,16),new THREE.MeshBasicMaterial({color:0xffd54a}));sunM.position.copy(sunP);S.add(sunM);
+function glowTex(){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)}
+const GT=glowTex(),sp0=new THREE.Sprite(new THREE.SpriteMaterial({map:GT,color:0xffd27a,transparent:true,opacity:.7,depthWrite:false}));sp0.scale.set(9,9,1);sp0.position.copy(sunP);S.add(sp0);
+function pts(n,color,size,op,add){const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(n*3).fill(-999),3));
+const p=new THREE.Points(geo,new THREE.PointsMaterial({color,size,map:GT,transparent:true,opacity:op,depthWrite:false,blending:add?THREE.AdditiveBlending:THREE.NormalBlending}));p.frustumCulled=false;S.add(p);return p}
+const NS=140,NF=36,NE=20,NR=70,steam=pts(NS,0xffffff,.6,.5),flow=pts(NF,0x2f9bff,.32,1),en=pts(NE*2,0xffe14d,.32,1,1),ray=pts(NR,0xffd54a,.5,.8,1);
+const st={act:new Uint8Array(NS),x:[],y:[],z:[],v:[]};const roff=[];for(let i=0;i<NR;i++)roff.push([Math.random()-.5,Math.random()-.5]);
+ray.visible=false;const beams=[];for(let i=0;i<16;i++){const pa_=i%2==0,r=roff[i],tg=pa_?V(2+r[0]*7,3.5,-9+r[1]*4):V(r[0]*10,4.75,r[1]*5),dir=tg.clone().sub(sunP),len=dir.length();const m=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,len,6,1,true),new THREE.MeshBasicMaterial({color:0xffd54a,transparent:true,opacity:.3,depthWrite:false,blending:THREE.AdditiveBlending}));m.position.copy(sunP).add(tg).multiplyScalar(.5);m.quaternion.setFromUnitVectors(V(0,1,0),dir.normalize());m.visible=false;S.add(m);beams.push(m)}
+const dgeo=new THREE.SphereGeometry(1,10,8),dmat=M(0x7fc8ff,{transparent:true,opacity:.9,roughness:.1});
+const D=[];for(let i=0;i<40;i++){const m=new THREE.Mesh(dgeo,dmat);m.visible=false;S.add(m);D.push({m,ph:-1,r:0,u:0,x:0,y:0,v:0,u2:0})}
+function spawn(x,u){const d=D.find(d=>d.ph<0);if(!d)return;d.ph=0;d.r=.03;d.x=x;d.u=u;d.m.visible=true}
+function clearPools(){st.act.fill(0);steam.geometry.attributes.position.array.fill(-999);D.forEach(d=>{d.ph=-1;d.m.visible=false})}
+// data
+const LB=['Қызметі','Жұмыс принципі','Материалы','Жобалық өлшемдері','Орны және қосылыстары'];
+const CARD={
+tank:['Бастапқы су резервуары','Ащыбұлақ суын жинап, жүйеге беруге дайын ұстау.','Су құбыр арқылы сорғыға өтеді; деңгейі біртіндеп төмендейді.','Мөлдір поликарбонат (деңгейді көру үшін), болат жиектеме.','Диаметрі 300 мм, биіктігі 400 мм, қабырғасы 4 мм; көлемі шамамен 28 л (жобалық өлшем).','Қондырғының сол жағында; төменгі шығысы құбыр арқылы сорғыға қосылған.'],
+pipes:['Су беру құбырлары және клапан','Суды резервуардан камераға апару; клапан ағынды ашады не жабады.','Сорғы айдаған су құбыр ішімен камераның кіріс тесігіне барады; клапан қолмен реттеледі.','Тот баспайтын болат құбыр, полимер тығыздағыштар.','Құбыр диаметрі 30 мм, ұзындығы шамамен 450 мм (жобалық өлшем).','Резервуар — сорғы — клапан — камера бойымен орналасқан; фланецтермен біріктірілген.'],
+pump:['Сорғы','Суды бастапқы резервуардан камераға айдау.','Электр қозғалтқышы ағын жасайды; қуатты контроллер арқылы күн панелінен алады.','Алюминий корпус, пластик қалақша.','Ұзындығы 90 мм, диаметрі 100 мм (жобалық өлшем).','Құбырдың бастапқы бөлігінде; электр кабелімен контроллерге қосылған.'],
+panel:['Фотоэлектрлік күн панелі','Күн сәулесін электр энергиясына айналдыру — сорғы мен контроллерді қуаттандыру.','Фотоэлементтер жарықтан электр тоғын өндіреді. Панель суды қыздырмайды: су камерадағы қара табақшаға түскен күн жылуынан қызады.','Кремний элементтері, алюминий жақтау, қорғаныс шынысы.','800 × 500 мм, қалыңдығы 25 мм, еңкею бұрышы шамамен 29° (жобалық өлшем).','Қондырғының артында тіректе; кабель контроллерге барады.'],
+chamber:['Буландыру камерасы','Ащыбұлақ суын күн жылуымен қыздырып, булануды қамтамасыз ету.','Су қара табақшаға жұтылған күн жылуынан қызады. Су буланғанда еріген тұздардың басым бөлігі камерада қалады. Бу салқынырақ бетке жетіп, конденсацияланады.','Жылу оқшаулағыш сыртқы корпус, коррозияға төзімді қара ішкі табақша.','1200 × 600 мм, биіктігі 270–470 мм, қабырғасы 20 мм, су тереңдігі ≤ 100 мм (жобалық өлшем).','Бір жағынан су беру құбырымен, жоғарыдан мөлдір қақпақпен жалғасады.'],
+lid:['Мөлдір көлбеу қақпақ','Күн сәулесін өткізіп, камераны жауып, конденсация үшін ішкі бет болу.','Қақпақтың ішкі беті салқынырақ болады; бу тиіп, тамшыға айналады да, көлбеу бетпен науаға сырғиды.','Поликарбонат немесе шыны: мөлдір, жеңіл, күнге төзімді.','1240 × 632 мм, қалыңдығы 12 мм, көлбеу бұрышы шамамен 18° (жобалық өлшем).','Камера корпусына алюминий жақтаумен бекітіледі; төменгі жиегінде науа бар.'],
+cond:['Конденсация аймағы','Су буының сұйыққа айналуын көрсету.','Конденсация — су буының сұйық күйге ауысуы. Тамшылар түзіледі, өседі және төмен сырғиды.','Қақпақтың ішкі беті (поликарбонат/шыны).','Ауданы шамамен 1180 × 600 мм (жобалық өлшем).','Қақпақтың астыңғы жағында; тамшылар науаға барады.'],
+gutter:['Конденсат жинау науасы және бұрғыш құбыр','Қақпақтан аққан тамшыларды жинап, дистиллят резервуарына жеткізу.','Тамшылар науаға түседі де, құбырмен резервуарға ағады.','Тот баспайтын болат.','Науа 1240 × 70 × 35 мм; құбыр диаметрі 30 мм (жобалық өлшем).','Қақпақтың төменгі жиегінің астында; дистиллят резервуарына жалғасады.'],
+dtank:['Дистиллят резервуары','Жиналған суды бастапқы судан бөлек сақтау.','Науадан келген су біртіндеп жиналып, деңгейі көтеріледі. Жиналған су ішуге жарамды деп есептелмейді — арнайы тексеру қажет.','Мөлдір поликарбонат, қақпағы бар.','Диаметрі 260 мм, биіктігі 300 мм; көлемі шамамен 16 л (жобалық өлшем).','Қондырғының оң жағында; бастапқы су резервуарынан бөлек.'],
+sens:['Датчиктер, контроллер және дисплей','Су мен камера температурасын өлшеп, көрсету.','Зонд температураны электр сигналына айналдырады; контроллер мәнді дисплейге шығарады. Бұл модельде көрсеткіштер — модельдік, тәжірибелік деректер емес.','Тот баспайтын зонд, пластик корпус.','Контроллер 240 × 220 × 90 мм; зонд диаметрі 8 мм (жобалық өлшем).','Зондтар камераның алдыңғы қабырғасынан енеді; кабельмен контроллерге, ол сорғы мен панельге қосылған.'],
+frame:['Каркас және бекіткіштер','Камераны, панельді және басқа модульдерді тіреу.','Тіректер салмақты жерге береді; бұрандалы қосылыстар модульдерді біріктіреді.','Мырышталған болат профиль, тот баспайтын бұрандалар.','Профиль 30 × 30 мм, камера тірегінің биіктігі 50 мм (жобалық өлшем).','Камера негізінің астында және панельдің тіректерінде.']};
+const ST=[['Күн энергиясының түсуі','Күн сәулесі панельге және қақпаққа түседі. Фотоэлектрлік панель электр энергиясын өндіреді (ол суды қыздырмайды), ал су камерадағы қара табақшаның тікелей күн жылуымен қызады.',['panel','lid']],
+['Бастапқы суды беру','Сорғы панельден алған электр энергиясымен суды резервуардан құбыр арқылы буландыру камерасына жібереді.',['tank','pipes','pump']],
+['Суды қыздыру','Қара табақша күн жылуын жұтып, су бірте-бірте қызады. Температура көрсеткіштері — модельдік.',['chamber']],
+['Булану','Булану — судың сұйық күйден газ күйіне ауысуы. Қарқындылығы температураға, бет ауданына, ауа ылғалдылығына және жел сияқты жағдайларға байланысты. Еріген тұздар негізінен камерада қалады.',['chamber']],
+['Конденсация','Су буы қақпақтың салқынырақ ішкі бетіне тиіп, ұсақ тамшыларға айналады; тамшылар өсіп, көлбеу бетпен төмен сырғиды.',['lid','cond']],
+['Конденсатты жинау','Тамшылар науаға түсіп, бұрғыш құбыр арқылы дистиллят резервуарына ағады. Жиналған су ішуге жарамды деп есептелмейді — арнайы тексеру қажет.',['gutter','dtank']],
+['Аяқталу','Модельдеу аяқталды. Процесті қайта бастауға немесе кез келген кезеңді жеке көруге болады.',[]]];
+const GUIDE='<h3>Нұсқаулық</h3><p><b>1.</b> «Процесті бастау» түймесін басыңыз — 70 секундтық толық цикл өздігінен жүреді.</p><p><b>2.</b> Модельді тышқанмен сүйреп айналдырыңыз, дөңгелекпен немесе екі саусақпен жақындатыңыз.</p><p><b>3.</b> Кез келген бөлшекті басыңыз — ол бөлектеніп, техникалық карточка ашылады.</p><p><b>4.</b> «Кезеңдер бойынша көрсету» — әр кезеңді жеке көрсетіп, түсіндіреді.</p><p><b>5.</b> «Ішкі құрылымды көрсету» — қабырғалар мөлдір болады; «Бөлшектерді көрсету» — қақпақ көтеріледі.</p><p><b>Ұсынылатын тәртіп:</b> жалпы көрініс → негізгі бөлшектер → ішкі құрылым → толық процесс → ғылыми түсіндірме.</p><p><small>Сары сызықтар — күн сәулелерінің шартты көрінісі; барлық сандар модельдік.</small></p>';
+const SCI='<h3>Ғылыми түсіндірме</h3><p><b>Булану</b> — судың сұйық күйден газ күйіне ауысуы. Жылдамдығы температураға, бет ауданына, ауа ылғалдылығына және желге байланысты.</p><p><b>Конденсация</b> — су буының сұйық күйге ауысуы.</p><p>Күн дистилляциясында еріген ұшпайтын тұздар негізінен бастапқы суда қалады. Ұшпа заттар мен басқа қоспалар қосымша тазалауды қажет етуі мүмкін.</p><p><b>Фотоэлектрлік панель</b> электр энергиясын өндіреді, суды қыздырмайды. Су камерадағы қара беттің тікелей күн жылуымен қызады; жылу алу үшін бөлек жылу коллекторы қолданылады.</p><p><b>Ескерту:</b> бұл — визуалды модельдеу. Анимация нақты өнімділікті, тазарту пайызын немесе сағатына алынатын су көлемін растамайды. Температура көрсеткіштері — модельдік. Алынған дистиллят ішуге жарамды деп есептелмейді. Ащыбұлақ суының нақты құрамы бұл модельде көрсетілмеген. Барлық өлшемдер — жобалық.</p>';
+// UI
+let hl=[];function setHL(ids){hl.forEach(h=>S.remove(h));hl=ids.map(i=>{const h=new THREE.BoxHelper(C[i],0xffb300);S.add(h);return h})}
+const pn=$('pn'),cd=$('cd'),ls=$('ls'),sci=$('sci');ls.style.display=sci.style.display='none';sci.innerHTML=SCI;
+ls.innerHTML='<h3>Техникалық сипаттамалар</h3>'+Object.keys(CARD).map(k=>'<div class="row" data-id="'+k+'">'+CARD[k][0]+'<small>'+CARD[k][3]+' · '+CARD[k][4]+'</small></div>').join('');
+ls.onclick=e=>{const r=e.target.closest('.row');if(r)select(r.dataset.id)};
+function select(id){const c=CARD[id];cd.innerHTML='<h3>'+c[0]+'</h3>'+LB.map((l,i)=>'<p><b>'+l+':</b> '+c[i+1]+'</p>').join('')+'<p><small>Барлық өлшемдер — жобалық, нақты өлшенген мән емес.</small></p>';
+cd.style.display='block';sci.style.display='none';pn.style.display='block';setHL([id]);focus(id)}
+$('x').onclick=()=>{pn.style.display='none';setHL([])};
+function focus(id){const b=new THREE.Box3().setFromObject(C[id]),c=b.getCenter(V(0,0,0)),s=b.getSize(V(0,0,0)),d=Math.max(s.x,s.y,s.z)*1.6+5;
+tw={t:c,p:c.clone().add(cam.position.clone().sub(ctl.target).normalize().multiplyScalar(d))}}
+let dn=null;const rc=new THREE.Raycaster(),mo=new THREE.Vector2();
+cv.addEventListener('pointerdown',e=>dn=[e.clientX,e.clientY]);
+cv.addEventListener('pointerup',e=>{if(!dn||Math.hypot(e.clientX-dn[0],e.clientY-dn[1])>5)return;mo.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);rc.setFromCamera(mo,cam);const h=rc.intersectObjects(pick,false)[0];if(h)select(h.object.userData.id)});
+const toast=m=>{const t=$('ts');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)};
+// sim state
+const T=[0,6,14,26,40,54,70],END=70,cl=x=>Math.min(1,Math.max(0,x)),sm=x=>{x=cl(x);return x*x*(3-2*x)};
+let t=0,run=false,mode='full',sEnd=END,sk=0,dist=0,lastSt=-1,pt=0,sa=0,lift=0,liftT=0,inter=false,lastDisp=0;
+function resetSim(){t=0;dist=0;mode='full';sEnd=END;lastSt=-1;pt=0;clearPools();$('ex').innerHTML='Бастау үшін «Процесті бастау» түймесін басыңыз. Бөлшекті таңдау үшін модельге басыңыз.'}
+function goStage(k){mode='stage';sk=k;t=T[k];sEnd=T[k+1]||END;dist=[0,0,0,0,0,4,24][k];clearPools();lastSt=-1;run=true}
+const BT=[['bs','Процесті бастау',()=>{if(t>=END||(mode=='stage'&&t>=sEnd-.01))resetSim();run=true}],['bp','Тоқтату',()=>run=false],['br','Қайта бастау',()=>{resetSim();run=true}],
+['bk','Кезеңдер бойынша көрсету',e=>{const s=$('st');s.style.display=s.style.display=='flex'?'none':'flex';e.classList.toggle('on')}],
+['bh','Бастапқы көрініс',()=>{tw={t:HOME.t.clone(),p:HOME.p.clone()};setHL([]);pn.style.display='none'}],
+['ba','Құрылғыны айналдыру',e=>{ctl.autoRotate=!ctl.autoRotate;e.classList.toggle('on')}],
+['bi','Ішкі құрылымды көрсету',e=>{inter=!inter;e.classList.toggle('on');[wall,tray].forEach(m=>{m.transparent=inter;m.opacity=inter?.18:1;m.depthWrite=!inter;m.needsUpdate=true});glass.opacity=inter?.12:.3}],
+['be','Бөлшектерді көрсету',e=>{liftT=liftT?0:6;e.classList.toggle('on')}],
+['bl','Техникалық сипаттамалар',()=>{pn.style.display='block';sci.style.display='none';ls.style.display=ls.style.display=='none'?'block':'none'}],
+['bc','Ғылыми түсіндірме',()=>{pn.style.display='block';cd.style.display=ls.style.display='none';sci.innerHTML=SCI;sci.style.display='block'}],
+['bn','Нұсқаулық',()=>{pn.style.display='block';cd.style.display=ls.style.display='none';sci.innerHTML=GUIDE;sci.style.display='block'}],
+['bf','Толық экран',()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(e){toast('Толық экран қолжетімсіз')}}]];
+BT.forEach(b=>{const e=document.createElement('button');e.textContent=b[1];e.onclick=()=>b[2](e);$('bt').appendChild(e)});$('st').style.flexWrap='wrap';
+ST.forEach((s,i)=>{const e=document.createElement('button');e.textContent=(i+1)+'. '+s[0];e.onclick=()=>goStage(i);$('st').appendChild(e)});
+const LBL=[['Ащыбұлақ суы',V(-11,4.7,0)],['Дистиллят',V(10,3.7,3.5)],['Күн панелі',V(2,5,-9)],['Буландыру камерасы',V(0,6,-3)]].map(a=>{const d=document.createElement('div');d.className='lb';d.textContent=a[0];document.body.appendChild(d);return[d,a[1]]});
+const cold=new THREE.Color(0x1f7fd0),hot=new THREE.Color(0x7fd0e8),pr=V(0,0,0);
+function setP(p,i,v){const a=p.geometry.attributes.position.array;a[i*3]=v.x;a[i*3+1]=v.y;a[i*3+2]=v.z}
+function hide(p,n){p.geometry.attributes.position.array.fill(-999);}
+function sim(dt){
+const fill=cl((t-6)/8),lc=fill-.1*cl((t-30)/40),heat=sm((t-10)/22),ev=sm((t-24)/18),pump=t>=6&&t<14,on=run||t>0,Tw=25+40*heat,Tc=25+27*sm((t-12)/26);
+dw.scale.y=Math.max(.001,lc);dw.visible=lc>.01;sw.scale.y=Math.max(.001,(1-.45*fill)*.95);ddw.scale.y=Math.max(.001,Math.min(.95,dist*.035));ddw.visible=dist>0;
+wat.color.copy(cold).lerp(hot,heat);tray.emissive.setRGB(.4*heat,.12*heat,0);
+if(run){pt+=dt;sa+=22*ev*dt;
+while(sa>=1){sa--;const i=st.act.indexOf(0);if(i<0)break;st.act[i]=1;st.x[i]=(Math.random()-.5)*10.8;st.z[i]=(Math.random()-.5)*5;st.y[i]=1+lc+.05;st.v[i]=.6+Math.random()*.6}
+const a=steam.geometry.attributes.position.array;
+for(let i=0;i<NS;i++){if(!st.act[i])continue;st.y[i]+=st.v[i]*dt*(.7+.6*ev);st.x[i]+=Math.sin(pt*2+i)*.15*dt;const u=(st.z[i]+3)/6;
+if(st.y[i]>=5.45-2*u){st.act[i]=0;a[i*3+1]=-999;if(Math.random()<.5)spawn(st.x[i],u);continue}a[i*3]=st.x[i];a[i*3+1]=st.y[i];a[i*3+2]=st.z[i]}
+for(const d of D){if(d.ph<0)continue;
+if(d.ph==0){d.r+=(.04+.06*ev)*dt;if(d.r>=.13){d.ph=1;d.v=.03}d.m.position.set(d.x,5.5-2*d.u-d.r*.6,-3+6*d.u)}
+else if(d.ph==1){d.v=Math.min(.35,d.v+.12*dt);d.u+=d.v*dt;if(d.u>=1){d.ph=2;d.y=3.45;d.m.position.set(d.x,d.y,3.05)}else d.m.position.set(d.x,5.5-2*d.u-d.r*.6,-3+6*d.u)}
+else if(d.ph==2){d.y-=3*dt;d.m.position.y=d.y;if(d.y<=3.14){d.ph=3;d.r=.1}}
+else if(d.ph==3){d.x+=2.4*dt;d.m.position.set(d.x,3.14,3.05+.25*cl((d.x+6)/12));if(d.x>=6.2){d.ph=4;d.u2=0}}
+else{d.u2+=.2*dt;if(d.u2>=1){dist++;d.ph=-1;d.m.visible=false;continue}d.m.position.copy(cD.getPointAt(d.u2))}
+d.m.scale.setScalar(d.r);d.m.visible=!(d.ph<2&&lift>.5)}}
+for(let i=0;i<NF;i++){if(pump){setP(flow,i,cF.getPointAt(((i/NF)+pt*.25)%1))}else setP(flow,i,V(0,-999,0))}
+for(let i=0;i<NE;i++){setP(en,i,on?c1.getPointAt(((i/NE)+pt*.3)%1):V(0,-999,0));setP(en,NE+i,pump?c2.getPointAt(((i/NE)+pt*.3)%1):V(0,-999,0))}
+beams.forEach((b,i)=>{b.visible=on;b.material.opacity=.22+.14*Math.sin(performance.now()/450+i)});
+[steam,flow,en,ray].forEach(p=>p.geometry.attributes.position.needsUpdate=true);
+if(performance.now()-lastDisp>400){lastDisp=performance.now();const idx=mode=='stage'?sk:T.reduce((a,v,i)=>t>=v?i:a,0);
+dx.fillStyle='#10202b';dx.fillRect(0,0,256,128);dx.fillStyle='#7fe0a0';dx.font='bold 22px sans-serif';dx.fillText('Су: '+Tw.toFixed(1)+' °C',10,28);dx.fillText('Камера: '+Tc.toFixed(1)+' °C',10,56);
+dx.font='14px sans-serif';dx.fillStyle='#ffd54a';dx.fillText('Кезең: '+ST[idx][0],10,84);dx.fillStyle='#9ab';dx.fillText('Модельдік мәндер',10,110);dt_.needsUpdate=true;
+if(idx!=lastSt){lastSt=idx;$('ex').innerHTML='<b>'+(idx+1)+'-кезең: '+ST[idx][0]+'</b><br>'+ST[idx][1]+'<br><small>Көрсеткіштер — модельдік.</small>';if(on)setHL(ST[idx][2])}
+$('pb').style.width=(t/END*100)+'%';if(t>=END&&!run&&lastSt==6&&!sim.d){sim.d=1;toast('Модельдеу аяқталды')}if(t<END)sim.d=0}}
+function resize(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}addEventListener('resize',resize);resize();
+const clk=new THREE.Clock();resetSim();
+function loop(){requestAnimationFrame(loop);const dt=Math.min(clk.getDelta(),.05);
+if(run){t+=dt;if(t>=sEnd){t=sEnd;run=false}}
+sim(dt);lift+=(liftT-lift)*(1-Math.exp(-4*dt));C.lid.position.y=C.cond.position.y=lift;
+if(tw){const k=1-Math.exp(-4*dt);ctl.target.lerp(tw.t,k);cam.position.lerp(tw.p,k);if(cam.position.distanceTo(tw.p)<.05)tw=null}
+ctl.update();hl.forEach(h=>h.update());
+LBL.forEach(l=>{const p=l[1].clone().project(cam);l[0].style.display=p.z>1?'none':'block';l[0].style.transform='translate('+((p.x*.5+.5)*innerWidth)+'px,'+((-p.y*.5+.5)*innerHeight)+'px) translate(-50%,-100%)'});
+R.render(S,cam)}
+loop();
+})();
+</script></body></html>
